@@ -5,7 +5,6 @@ import {
   fetchEntries,
   rememberCode,
   rememberedCode,
-  usingSupabase,
   WrongCodeError,
   type Entry,
 } from './lib/storage'
@@ -54,14 +53,10 @@ export default function App() {
     <main className="page">
       <header className="title">
         <h1>방명록</h1>
-        <p>한마디 남겨주세요.</p>
       </header>
-      {!usingSupabase && import.meta.env.DEV && (
-        <p className="notice">개발 모드: Supabase 키가 없어 이 브라우저에만 저장되고, 아무 코드나 통과돼요.</p>
-      )}
 
       {checking ? (
-        <p className="board-msg">확인하는 중…</p>
+        null
       ) : code ? (
         <Wall code={code} onCodeInvalid={leave} />
       ) : (
@@ -108,9 +103,8 @@ function Gate({ onEnter }: { onEnter: (code: string) => void }) {
       style={tiltStyle(-1)}
       onSubmit={handleSubmit}
     >
-      <label htmlFor="entry-code">입장코드</label>
       <input
-        id="entry-code"
+        aria-label="입장코드"
         placeholder="입장코드"
         value={input}
         maxLength={30}
@@ -166,9 +160,6 @@ function Wall({ code, onCodeInvalid }: { code: string; onCodeInvalid: () => void
             >
               <p>{entry.message}</p>
               <div className="from">— {entry.name}</div>
-              <time dateTime={new Date(entry.createdAt).toISOString()}>
-                {new Date(entry.createdAt).toLocaleDateString('ko-KR')}
-              </time>
             </article>
           </li>
         )
@@ -209,7 +200,6 @@ function Compose({
 
   return (
     <form className="note cream compose" style={tiltStyle(0)} onSubmit={handleSubmit}>
-      <span className="label">새 쪽지</span>
       <textarea
         aria-label="남기고 싶은 말"
         placeholder="남기고 싶은 말"
@@ -219,8 +209,8 @@ function Compose({
         onChange={(e) => setMessage(e.target.value)}
       />
       <input
-        aria-label="이름 / 팀명"
-        placeholder="— 이름 / 팀명"
+        aria-label="이름"
+        placeholder="이름"
         value={name}
         maxLength={20}
         onChange={(e) => setName(e.target.value)}

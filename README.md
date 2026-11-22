@@ -11,7 +11,7 @@ npm run dev
 ```
 
 `.env.local`에 Supabase 주소와 공개용(publishable/anon) 키가 필요합니다. 형식은 `.env.example` 참고.
-키가 없으면 개발용으로 브라우저에만 저장되고 아무 코드나 통과됩니다.
+키가 없으면 방명록이 열리지 않습니다. (Vercel에도 같은 두 값을 환경변수로 넣어야 합니다)
 
 ## 입장코드 동작
 
