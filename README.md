@@ -1,7 +1,7 @@
 # 방명록 (guestbook)
 
-방탈출 손님용 방명록 페이지. Vite + React + TypeScript, 저장소는 Supabase.
-손님은 문제를 풀어 얻은 **입장코드**를 맞혀야 방명록을 보고 글을 남길 수 있습니다.
+방명록 페이지. Vite + React + TypeScript, 저장소는 Supabase.
+손님은 **입장코드**를 맞혀야 방명록을 보고 글을 남길 수 있습니다.
 
 ## 실행
 

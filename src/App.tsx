@@ -10,7 +10,7 @@ import {
   type Entry,
 } from './lib/storage'
 
-const COLORS = ['yellow', 'pink', 'mint', 'blue', 'orange'] as const
+const COLORS = ['cream', 'rose', 'sage', 'mist', 'sand'] as const
 
 // 글 id로 색과 기울기를 정해서 새로고침해도 같은 모양으로 보이게
 function noteLook(id: string) {
@@ -19,7 +19,7 @@ function noteLook(id: string) {
   const n = Math.abs(h)
   return {
     color: COLORS[n % COLORS.length],
-    tilt: ((n >> 3) % 9) - 4, // -4° ~ 4°
+    tilt: ((n >> 3) % 5) - 2, // -2° ~ 2°
   }
 }
 
@@ -52,9 +52,9 @@ export default function App() {
 
   return (
     <main className="page">
-      <header className="title-strip">
+      <header className="title">
         <h1>방명록</h1>
-        <p>탈출에 성공하셨나요? 한마디 남겨주세요.</p>
+        <p>한마디 남겨주세요.</p>
       </header>
       {!usingSupabase && import.meta.env.DEV && (
         <p className="notice">개발 모드: Supabase 키가 없어 이 브라우저에만 저장되고, 아무 코드나 통과돼요.</p>
@@ -104,15 +104,14 @@ function Gate({ onEnter }: { onEnter: (code: string) => void }) {
   return (
     <form
       key={shakeKey}
-      className={`note yellow compose gate${shakeKey ? ' shake' : ''}`}
-      style={tiltStyle(-2)}
+      className={`note cream compose gate${shakeKey ? ' shake' : ''}`}
+      style={tiltStyle(-1)}
       onSubmit={handleSubmit}
     >
       <label htmlFor="entry-code">입장코드</label>
-      <p className="hint">문제를 풀고 얻은 정답을 적어주세요.</p>
       <input
         id="entry-code"
-        placeholder="정답"
+        placeholder="입장코드"
         value={input}
         maxLength={30}
         autoComplete="off"
@@ -155,7 +154,7 @@ function Wall({ code, onCodeInvalid }: { code: string; onCodeInvalid: () => void
       {loading && <li className="board-msg">쪽지를 불러오는 중…</li>}
       {loadError && <li className="board-msg">방명록을 불러오지 못했어요.</li>}
       {!loading && !loadError && entries.length === 0 && (
-        <li className="board-msg">아직 붙은 쪽지가 없어요. 첫 쪽지를 남겨주세요!</li>
+        <li className="board-msg">아직 남겨진 쪽지가 없어요.</li>
       )}
       {entries.map((entry) => {
         const look = noteLook(entry.id)
@@ -209,7 +208,7 @@ function Compose({
   }
 
   return (
-    <form className="note yellow compose" style={tiltStyle(-1)} onSubmit={handleSubmit}>
+    <form className="note cream compose" style={tiltStyle(0)} onSubmit={handleSubmit}>
       <span className="label">새 쪽지</span>
       <textarea
         aria-label="남기고 싶은 말"
