@@ -39,3 +39,6 @@ button:disabled { opacity: 0.4; cursor: not-allowed; }
 .empty { color: var(--muted); text-align: center; padding: 24px; }
 .notice { color: var(--muted); font-size: 0.8rem; margin: -20px 0 24px; }
 .error { color: #ff7b7b; font-size: 0.9rem; margin: 0; }
+.gate label { font-weight: 700; color: var(--accent); }
+.hint { color: var(--muted); font-size: 0.85rem; margin: -4px 0 4px; }
+.gate input { font-size: 1.2rem; text-align: center; letter-spacing: 0.2em; }

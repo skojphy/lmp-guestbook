@@ -7,15 +7,15 @@ export type Entry = {
   createdAt: number
 }
 
-const url = import.meta.env.VITE_SUPABASE_URL as string | undefined
-const anonKey = import.meta.env.VITE_SUPABASE_ANON_KEY as string | undefined
+const url = import.meta.env.VITE_SUPABASE_URL
+const anonKey = import.meta.env.VITE_SUPABASE_ANON_KEY
 
-// .env.local에 키가 있으면 Supabase, 없으면 브라우저(localStorage)에 저장합니다.
+// .env.local에 키가 있으면 Supabase, 없으면 개발용으로 브라우저(localStorage)에 저장합니다.
+// 입장코드 정답은 Supabase 안에만 있고, 이 코드(브라우저)에는 들어가지 않습니다.
 export const supabase = url && anonKey ? createClient(url, anonKey) : null
 export const usingSupabase = supabase !== null
 
-const TABLE = 'escape_guestbook'
-const LOCAL_KEY = 'guestbook.entries'
+export class WrongCodeError extends Error {}
 
 type Row = { id: string; name: string; message: string; created_at: string }
 const fromRow = (r: Row): Entry => ({
@@ -25,6 +25,26 @@ const fromRow = (r: Row): Entry => ({
   createdAt: new Date(r.created_at).getTime(),
 })
 
+// ── 입장코드 기억 (새로고침해도 다시 묻지 않게) ──
+const CODE_KEY = 'guestbook.code'
+export function rememberedCode(): string | null {
+  try {
+    return localStorage.getItem(CODE_KEY)
+  } catch {
+    return null
+  }
+}
+export function rememberCode(code: string | null) {
+  try {
+    if (code) localStorage.setItem(CODE_KEY, code)
+    else localStorage.removeItem(CODE_KEY)
+  } catch {
+    // 저장 불가 환경은 무시
+  }
+}
+
+// ── 개발용 로컬 저장 ──
+const LOCAL_KEY = 'guestbook.entries'
 function readLocal(): Entry[] {
   try {
     const raw = localStorage.getItem(LOCAL_KEY)
@@ -34,32 +54,37 @@ function readLocal(): Entry[] {
   }
 }
 
-export async function fetchEntries(): Promise<Entry[]> {
+export async function checkCode(code: string): Promise<boolean> {
+  if (!supabase) return code.trim().length > 0 // 개발 모드: 아무 코드나 통과
+  const { data, error } = await supabase.rpc('escape_guestbook_check_code', { p_code: code })
+  if (error) throw error
+  return data === true
+}
+
+export async function fetchEntries(code: string): Promise<Entry[]> {
   if (!supabase) return readLocal()
-  const { data, error } = await supabase
-    .from(TABLE)
-    .select('id, name, message, created_at')
-    .order('created_at', { ascending: false })
-    .limit(200)
+  const { data, error } = await supabase.rpc('escape_guestbook_list', { p_code: code })
   if (error) throw error
   return (data as Row[]).map(fromRow)
 }
 
-export async function addEntry(name: string, message: string): Promise<Entry> {
+export async function addEntry(code: string, name: string, message: string): Promise<Entry> {
   if (!supabase) {
     const entry: Entry = { id: crypto.randomUUID(), name, message, createdAt: Date.now() }
     try {
       localStorage.setItem(LOCAL_KEY, JSON.stringify([entry, ...readLocal()]))
     } catch {
-      // 저장 불가 환경(시크릿 모드 등)은 무시
+      // 저장 불가 환경은 무시
     }
     return entry
   }
-  const { data, error } = await supabase
-    .from(TABLE)
-    .insert({ name, message })
-    .select('id, name, message, created_at')
-    .single()
+  const { data, error } = await supabase.rpc('escape_guestbook_add', {
+    p_code: code,
+    p_name: name,
+    p_message: message,
+  })
   if (error) throw error
-  return fromRow(data as Row)
+  const rows = data as Row[]
+  if (rows.length === 0) throw new WrongCodeError() // 코드가 바뀌었거나 틀림
+  return fromRow(rows[0])
 }
